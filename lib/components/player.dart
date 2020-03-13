@@ -7,7 +7,7 @@ class Player {
   int currentHealth;
   Rect playerRect;
   bool isDead = false;
-  GameController gameController;
+  final GameController gameController;
 
   Player(this.gameController) {
     maxHealth = currentHealth = 300;
@@ -19,10 +19,17 @@ class Player {
       size,
     );
   }
+
   void render(Canvas canvas) {
     Paint playerColor = Paint()..color = Color(0xff0000FA);
     canvas.drawRect(playerRect, playerColor);
   }
 
-  void update(double t) {}
+  void update(double t) {
+    print('curr_health: $currentHealth');
+    if (!isDead && currentHealth <= 0) {
+      isDead = true;
+      //game over ==> reset the game
+    }
+  }
 }

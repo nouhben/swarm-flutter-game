@@ -8,7 +8,7 @@ class Enemy {
   int damage;
   double speed;
   Rect enemyRect;
-  GameController gameController;
+  final GameController gameController;
   bool isDead = false;
 
   Enemy(this.gameController, double x, double y) {
@@ -45,26 +45,38 @@ class Enemy {
 
   void update(double t) {
     if (!isDead) {
-      //distance separating the enemy from the player
+      //the distance the enemy walks in a frame
       double stepDistance = speed * t;
+      //distance separating the enemy from the player or our player's position
       Offset toPlayer =
           gameController.player.playerRect.center - enemyRect.center;
-      //we need to let the ennemy moves towards the player's position
-      if (stepDistance <= toPlayer.distance) {
+      //we need to let the enemy moves towards the player's position
+      //no matter where he is
+      // the -gameController.tileSize * 1.25 is used to leave some space
+      //between the player end the enemy
+      if (stepDistance <= toPlayer.distance - gameController.tileSize * 1.25) {
         Offset stepToPlayer =
             Offset.fromDirection(toPlayer.direction, stepDistance);
-        //moves the enmy towards the specified postion
+        //moves the enemy towards the specified position
         enemyRect.shift(stepToPlayer);
+      } else {
+        //the enemy is in the range to attack the player
+        attack();
       }
     }
   }
 
-  void onTapDown(TapDownDetails details) {
+  void attack() {
+    if (!gameController.player.isDead) {
+      gameController.player.currentHealth -= damage;
+    }
+  }
+
+  void onTapDown() {
     if (!isDead) {
       health--;
       if (health <= 0) {
         isDead = true;
-        health = 3;
         //update the score
       }
     }
