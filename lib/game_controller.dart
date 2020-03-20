@@ -4,28 +4,48 @@ import 'dart:ui';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/widgets.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xania/components/enemy.dart';
 import 'package:xania/components/health_bar.dart';
+import 'package:xania/components/highscore_text.dart';
+import 'package:xania/components/score_text.dart';
+import 'package:xania/components/start_button.dart';
+import 'package:xania/enemy_spawner.dart';
+import 'package:xania/state.dart';
 
 import 'components/player.dart';
 
 class GameController extends Game {
+  final SharedPreferences storage;
   Size screenSize;
   double tileSize;
   Player player;
+  EnemySpawner spawner;
   List<Enemy> enemies;
   HealthBar healthBar;
   Random rand;
-  GameController() {
+  int score;
+  ScoreText scoreText;
+  HighscoreText highscoreText;
+  GameState gameState;
+  StartButton startButton;
+
+  GameController(this.storage) {
     initialize();
   }
 
   void initialize() async {
     resize(await Flame.util.initialDimensions());
     rand = Random();
+    gameState = GameState.menu;
     player = Player(this);
     enemies = List<Enemy>();
+    spawner = EnemySpawner(this);
     healthBar = HealthBar(this);
+    scoreText = ScoreText(this);
+    highscoreText = HighscoreText(this);
+    startButton = StartButton(this);
+    score = 0;
   }
 
   void render(Canvas canvas) {
@@ -35,15 +55,31 @@ class GameController extends Game {
     canvas.drawRect(backgroundRect, backgroundPaint);
 
     player.render(canvas);
-    enemies.forEach((Enemy enemy) => enemy.render(canvas));
-    healthBar.render(canvas);
+    if (gameState == GameState.menu) {
+      startButton.render(canvas);
+      highscoreText.render(canvas);
+    } else if (gameState == GameState.playing) {
+      enemies.forEach((Enemy enemy) => enemy.render(canvas));
+      scoreText.render(canvas);
+      healthBar.render(canvas);
+    }
   }
 
   void update(double t) {
-    enemies.forEach((Enemy enemy) => enemy.update(t));
-    enemies.removeWhere((Enemy enemy) => enemy.isDead);
-    player.update(t);
-    healthBar.update(t);
+    if (gameState == GameState.menu) {
+      //do start button update
+      startButton.update(t);
+      //high score text .update
+      highscoreText.update(t);
+    } else if (gameState == GameState.playing) {
+      spawner.update(t);
+      enemies.forEach((Enemy enemy) => enemy.update(t)); //async
+      //enemies.removeWhere((Enemy enemy) => enemy.isDead);
+      enemies.removeWhere((Enemy e) => e.isDead); //async
+      player.update(t);
+      scoreText.update(t);
+      healthBar.update(t);
+    }
   }
 
   void resize(Size size) {
@@ -52,13 +88,17 @@ class GameController extends Game {
   }
 
   void onTapDown(TapDownDetails d) {
-    //check for each enemy if we tap on it
-    //to decrease its health
-    enemies.forEach((Enemy enemy) {
-      if (enemy.enemyRect.contains(d.globalPosition)) {
-        enemy.onTapDown();
-      }
-    });
+    if (gameState == GameState.menu) {
+      gameState = GameState.playing;
+    } else if (gameState == GameState.playing) {
+      //check for each enemy if we tap on it
+      //to decrease its health
+      enemies.forEach((Enemy enemy) {
+        if (enemy.enemyRect.contains(d.globalPosition)) {
+          enemy.onTapDown();
+        }
+      });
+    }
   }
 
   void spawnEnemy() {

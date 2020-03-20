@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:xania/game_controller.dart';
+import 'package:xania/state.dart';
 
 class Player {
   int maxHealth;
@@ -26,10 +27,9 @@ class Player {
   }
 
   void update(double t) {
-    print('curr_health: $currentHealth');
     if (!isDead && currentHealth <= 0) {
       isDead = true;
-      //game over ==> reset the game
+      gameController.gameState = GameState.menu;
     }
   }
 }

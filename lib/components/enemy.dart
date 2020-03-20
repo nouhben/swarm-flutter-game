@@ -58,7 +58,7 @@ class Enemy {
         Offset stepToPlayer =
             Offset.fromDirection(toPlayer.direction, stepDistance);
         //moves the enemy towards the specified position
-        enemyRect.shift(stepToPlayer);
+        enemyRect = enemyRect.shift(stepToPlayer);
       } else {
         //the enemy is in the range to attack the player
         attack();
@@ -77,7 +77,11 @@ class Enemy {
       health--;
       if (health <= 0) {
         isDead = true;
-        //update the score
+        gameController.score++;
+        if (gameController.score >
+            (gameController.storage.getInt('highscore') ?? 0)) {
+          gameController.storage.setInt('highscore', gameController.score);
+        }
       }
     }
   }

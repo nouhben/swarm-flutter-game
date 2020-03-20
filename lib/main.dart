@@ -2,6 +2,7 @@ import 'package:flame/util.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xania/game_controller.dart';
 
 void main() async {
@@ -9,7 +10,9 @@ void main() async {
   Util flameUtil = Util();
   await flameUtil.fullScreen();
   await flameUtil.setOrientation(DeviceOrientation.portraitUp);
-  GameController gameController = GameController();
+  //to store data
+  SharedPreferences storage = await SharedPreferences.getInstance();
+  GameController gameController = GameController(storage);
   runApp(gameController.widget);
 
   TapGestureRecognizer tapper = TapGestureRecognizer();
